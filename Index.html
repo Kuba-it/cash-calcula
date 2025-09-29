@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #7be559d4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 650px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h2 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 2px solid #ddd; padding: 10px; text-align: center; }
+    tfoot { font-weight: bold; }
+    button {
+      margin-top: 10px; display: block; width: 100%;
+      padding: 10px; font-size: 15px; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Калькулятор</h2>
+    <table>
+      <thead>
+        <tr><th>Купюралар</th><th>Саны</th><th>Суммасы</th></tr>
+      </thead>
+      <tbody id="billTable"></tbody>
+      <tfoot>
+        <tr><td colspan="2">Жалпы сумма:</td><td id="totalSum">0</td></tr>
+      </tfoot>
+    </table>
+    <button id="saveBtn">Сохранить как Word</button>
+  </div>
+
+  <script>
+    var bills = [5000,2000,1000,500,200,100,50,20,10,5,3,1];
+    var billTable = document.getElementById('billTable');
+    var totalSum = document.getElementById('totalSum');
+
+    function calculateTotal() {
+      var total = 0;
+      var rows = billTable.querySelectorAll('tr');
+      rows.forEach(function(row){
+        var input = row.querySelector('input');
+        var count = parseInt(input.value) || 0;
+        var billValue = parseInt(row.getAttribute('data-value'), 10);
+        var sum = count * billValue;
+        row.querySelector('.sum').textContent = sum;
+        total += sum;
+      });
+      totalSum.textContent = total;
+    }
+
+    function createBillRows() {
+      bills.forEach(function(bill){
+        var row = document.createElement('tr');
+        row.setAttribute('data-value', bill);
+        row.innerHTML = '<td>'+bill+'</td><td><input type="number" min="0"></td><td class="sum">0</td>';
+        billTable.appendChild(row);
+        row.querySelector('input').addEventListener('input', calculateTotal);
+      });
+    }
+
+    function saveAsWord() {
+      var total = totalSum.innerText;
+      var tableHtml = '<h2>Отчет</h2><table border="1" style="border-collapse:collapse; width:100%;">' +
+        '<thead><tr><th>Купюралар</th><th>Саны</th><th>Суммасы</th></tr></thead><tbody>';
+      billTable.querySelectorAll('tr').forEach(function(row){
+        var val = row.querySelector('input').value;
+        tableHtml += '<tr><td>'+row.cells[0].innerText+'</td><td>'+val+'</td><td>'+row.cells[2].innerText+'</td></tr>';
+      });
+      tableHtml += '</tbody></table><h3>Жалпы сумма: '+total+'</h3>';
+      var blob = new Blob(['<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>'+tableHtml+'</body></html>'], {type:'application/msword'});
+      var url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    }
+
+    createBillRows();
+    document.getElementById('saveBtn').addEventListener('click', saveAsWord);
+  </script>
+</body>
+</html>
